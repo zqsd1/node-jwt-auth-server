@@ -22,6 +22,10 @@ const users = [
         mail: "c@example.com",
     }
 ]
+
+const disabledAuth = [
+
+]
 const app = express()
 app.use(cookieParser())
 app.use(express.json())
@@ -61,12 +65,17 @@ app.post('/auth/login', (req, res) => {
 })
 
 app.post('/auth/logout', (req, res) => {
-    //add tokens to ban list
+    const { refreshToken } = req.cookies
+    if (!refreshToken) return res.sendStatus(401)
+    disabledAuth.push(refreshToken)
+
+    res.sendStatus(200)
 })
 
 app.post('/auth/refresh', (req, res) => {
     const { refreshToken } = req.cookies
     if (!refreshToken) return res.sendStatus(401)
+    if (disabledAuth.includes(refreshToken)) return res.sendStatus(401)
     const decoded = jwt.verify(refreshToken, process.env.REFRESH_TOKEN_KEY, (err, decode) => {
         if (err) return res.sendStatus(401)
         const { username, mail } = decode
