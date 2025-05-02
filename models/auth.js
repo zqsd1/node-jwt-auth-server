@@ -5,8 +5,8 @@ mongoose.connect('mongodb://localhost/users')
     .catch(err => console.error(err))
 
 const UserSchema = new Schema({
-    mail: { type: String, unique: true },
-    password: String,
+    mail: { type: String, unique: true, required: true },
+    password: { type: String, required: true },
     role: { type: String, default: "user" }
 })
 
