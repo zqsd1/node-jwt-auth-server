@@ -79,7 +79,8 @@ export const register = async (req, res) => {
             const newUser = new User({ mail, password: hash })
             return newUser.save()
         }).then(response => {
-            return res.status(200).res.json(response)
+
+            return res.json(response)
         }).catch(err => {
             console.error(err.message)
             return res.status(500).json(err.message)//something fail
