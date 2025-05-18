@@ -2,10 +2,14 @@ import express from "express"
 import 'dotenv/config'
 import cookieParser from "cookie-parser"
 import { router as auth } from "./routes/auth.js"
+import cors from "cors"
 
 const app = express()
 app.use(cookieParser())
 app.use(express.json())
+app.use(cors({
+    credentials:true
+}))
 
 app.use('/auth',auth)
 
