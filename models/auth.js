@@ -1,6 +1,6 @@
 import mongoose, { Schema } from "mongoose";
 
-mongoose.connect('mongodb://localhost/users')
+mongoose.connect(process.env.DATABASE_URL)
     .then(() => console.log('connected'))
     .catch(err => console.error(err))
 
