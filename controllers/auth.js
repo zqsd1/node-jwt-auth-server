@@ -1,9 +1,9 @@
 import jwt from 'jsonwebtoken'
 import { User } from '../models/auth.js'
 import bcrypt from "bcrypt";
-const saltRounds = 10;
+import { redisClient } from '../db/redis.js'
 
-const disabledAuth = []
+const saltRounds = 10;
 
 export const login = async (req, res) => {
     const { password, mail } = req.body
@@ -42,28 +42,32 @@ export const login = async (req, res) => {
 export const refresh = (req, res) => {
     const { refreshToken } = req.cookies
     if (!refreshToken) return res.sendStatus(401) //no token given
-    if (disabledAuth.includes(refreshToken)) return res.sendStatus(401) //token banned
 
-    jwt.verify(refreshToken, process.env.REFRESH_TOKEN_KEY, (err, decode) => {
-        if (err) return res.sendStatus(401)//token expired ?
-        const { role, id, mail } = decode
-        // TODO check user ?
+    return redisClient.get(refreshToken)
+        .then((isTokenBanned) => {
+            if (isTokenBanned) return res.sendStatus(401)
 
-        const authToken = jwt.sign(
-            { role, id, mail },
-            process.env.AUTH_TOKEN_KEY,
-            {
-                expiresIn: '15m'
-            }
-        )
-        return res.json(authToken)
-    })
+            jwt.verify(refreshToken, process.env.REFRESH_TOKEN_KEY, (err, decode) => {
+                if (err) return res.sendStatus(401)//token expired ?
+                const { role, id, mail } = decode
+                // TODO check user ?
+                const authToken = jwt.sign(
+                    { role, id, mail },
+                    process.env.AUTH_TOKEN_KEY,
+                    {
+                        expiresIn: '15m'
+                    }
+                )
+                return res.json(authToken)
+            })
+        })
+        .catch(err => console.log(err))
 }
 
 export const logout = (req, res) => {
     const { refreshToken } = req.cookies
     if (!refreshToken) return res.sendStatus(401)
-    disabledAuth.push(refreshToken)
+    redisClient.set(refreshToken, 1, { EX: 60 * 60 * 24 })
 
     res.sendStatus(200)
 }
@@ -85,4 +89,10 @@ export const register = async (req, res) => {
             console.error(err.message)
             return res.status(500).json(err.message)//something fail
         })
+}
+
+export const unregister = async (req, res) => {
+    //need id dans mongo
+    const { id } = req.params
+    console.log(id)
 }
