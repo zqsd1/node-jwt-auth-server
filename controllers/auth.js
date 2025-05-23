@@ -74,16 +74,15 @@ export const logout = (req, res) => {
 
 export const register = async (req, res) => {
     if (!req.body) return res.sendStatus(500)// no body found
-    const { mail, password } = req.body
+    const { mail, password, role } = req.body
     if (!mail || !password) return res.sendStatus(400)//missing data
     // const user = await User.findOne({ mail }) //si unique est mis avant de creer la table y'a pas besoin
     // if (user) return res.status(400).json("user exist")
     bcrypt.hash(password, saltRounds)
         .then(hash => {
-            const newUser = new User({ mail, password: hash })
+            const newUser = new User({ mail, password: hash, role })
             return newUser.save()
         }).then(response => {
-
             return res.json(response)
         }).catch(err => {
             console.error(err.message)
@@ -91,8 +90,24 @@ export const register = async (req, res) => {
         })
 }
 
+
+
 export const unregister = async (req, res) => {
-    //need id dans mongo
-    const { id } = req.params
-    console.log(id)
+    const token = req.headers.authorization?.split(' ')[1];
+    if (!token) return res.sendStatus(401)
+    jwt.verify(token, process.env.AUTH_TOKEN_KEY, (err, decoded) => {
+        if (err) return res.status(400).json(err.message)
+        const { _id } = decoded
+        User.deleteOne({ _id }).then(response => {
+            ////////logout
+            const { refreshToken } = req.cookies
+            if (refreshToken) {
+                redisClient.set(refreshToken, 1, { EX: 60 * 60 * 24 })
+            }
+            //////////
+            return res.json(response)
+        }).catch(err => {
+            return res.status(500).json(err.message)//something fail
+        })
+    })
 }
