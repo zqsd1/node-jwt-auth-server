@@ -8,7 +8,8 @@ const app = express()
 app.use(cookieParser())
 app.use(express.json())
 app.use(cors({
-    credentials:true
+    origin:true,
+    credentials: true
 }))
 
 app.use('/auth',auth)
