@@ -2,41 +2,38 @@ import jwt from 'jsonwebtoken'
 import { User } from '../models/auth.js'
 import bcrypt from "bcrypt";
 import { redisClient } from '../db/redis.js'
-
 const saltRounds = 10;
 
 export const login = async (req, res) => {
     const { password, mail } = req.body
     if (!(password && mail)) return res.sendStatus(401) //missing something
-    User.findOne({ mail })
-        .then(response => {
-            if (!response) return res.sendStatus(404) //user not found
-            bcrypt.compare(password, response.password).then(result => {
-                if (!result) return res.sendStatus(403)//password not match
-                const authToken = jwt.sign(
-                    { role: response.role, mail: response.mail, id: response._id },
-                    process.env.AUTH_TOKEN_KEY,
-                    { expiresIn: '15m' }
-                )
-                const refreshToken = jwt.sign(
-                    { role: response.role, mail: response.mail, id: response._id },
-                    process.env.REFRESH_TOKEN_KEY,
-                    { expiresIn: '1d' }
-                )
+    const user = await User.findOne({ mail })
+    if (!user) return res.sendStatus(404) //user not found
 
-                res.cookie('refreshToken', refreshToken, {
-                    httpOnly: true,
-                    maxAge: 1000 * 60 * 60 * 24 //1 day
-                })
+    bcrypt.compare(password, user.password)
+        .then(result => {
+            if (!result) return res.sendStatus(403)//password not match
+            const authToken = jwt.sign(
+                { role: user.role, mail: user.mail, id: user._id },
+                process.env.AUTH_TOKEN_KEY,
+                { expiresIn: '15m' }
+            )
+            const refreshToken = jwt.sign(
+                { role: user.role, mail: user.mail, id: user._id },
+                process.env.REFRESH_TOKEN_KEY,
+                { expiresIn: '1d' }
+            )
 
-                return res.json(authToken)
-
-            }).catch(err => {
-                return res.status(500).json(err.message)
+            res.cookie('refreshToken', refreshToken, {
+                httpOnly: true,
+                maxAge: 1000 * 60 * 60 * 24 //1 day
             })
-        })
-        .catch(err => console.error(err))
 
+            return res.json(authToken)
+
+        }).catch(err => {
+            return res.status(500).json(err.message)
+        })
 }
 
 export const refresh = (req, res) => {
@@ -97,15 +94,10 @@ export const unregister = async (req, res) => {
     if (!token) return res.sendStatus(401)
     jwt.verify(token, process.env.AUTH_TOKEN_KEY, (err, decoded) => {
         if (err) return res.status(400).json(err.message)
-        const { _id } = decoded
-        User.deleteOne({ _id }).then(response => {
-            ////////logout
-            const { refreshToken } = req.cookies
-            if (refreshToken) {
-                redisClient.set(refreshToken, 1, { EX: 60 * 60 * 24 })
-            }
-            //////////
-            return res.json(response)
+        const { id } = decoded
+        User.deleteOne({ _id: id }).then(response => {
+            if (response.deletedCount == 0) throw new Error('aucun user deleted')
+            return logout(req, res)
         }).catch(err => {
             return res.status(500).json(err.message)//something fail
         })
