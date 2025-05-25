@@ -14,7 +14,7 @@ app.use(cors({
 }))
 
 app.use('/auth', auth)
-app.use('/api/accounts', account)
+app.use('/auth/accounts', account)
 
 app.listen(process.env.EXPRESS_PORT || 3200, () => {
     console.log("server started on http://localhost:" + process.env.EXPRESS_PORT || 3200)

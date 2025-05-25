@@ -10,4 +10,4 @@ router.post('/refresh', refresh)
 
 router.post('/register', register)
 
-router.delete('/unregister/:id', unregister)
+router.delete('/unregister', unregister)

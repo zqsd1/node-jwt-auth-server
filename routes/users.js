@@ -1,22 +1,22 @@
 import express from "express"
 import { deleteUser, findUser, listUsers, UpdateUser } from "../controllers/users.js"
-import { authenticate, roleCheck } from "../middlewares/auth.js"
+import { authenticate, AdminCheck } from "../middlewares/auth.js"
 import { unregister } from "../controllers/auth.js"
 export const router = express.Router()
 
 router.use(authenticate)
 
-//show me
+//show me => les info sont dans le token JWT ? donc pas besoin ?
 router.get('/me', findUser)
 
-//change password
+//change password => need old password ?
 router.put('/me', UpdateUser)
 
 //suicide ?
 router.delete('/me', unregister)
 
 // ONLY FOR ADMIN
-router.use(roleCheck)
+router.use(AdminCheck)
 
 //list all users
 router.get('/', listUsers)
@@ -27,7 +27,7 @@ router.get('/:id', findUser)
 //update user
 router.put('/:id', UpdateUser)
 
-router.delete('/:id',deleteUSer)
+router.delete('/:id',deleteUser)
 
 //delete user == unregister
 
