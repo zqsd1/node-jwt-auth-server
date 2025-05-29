@@ -5,7 +5,8 @@ import { router as auth } from "./src/routes/auth.js"
 import { router as account } from "./src/routes/users.js"
 import "./src/db/mongo.js"
 import cors from "cors"
-import { logger } from './winston.js'
+import { logger } from './src/winston.js'
+import { errors } from './src/middlewares/errors.js'
 
 const app = express()
 app.use(cookieParser())
@@ -17,6 +18,8 @@ app.use(cors({
 
 app.use('/auth', auth)
 app.use('/auth/accounts', account)
+
+app.use(errors)
 
 app.listen(process.env.EXPRESS_PORT || 3200, () => {
 

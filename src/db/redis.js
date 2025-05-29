@@ -1,5 +1,5 @@
 import {createClient} from "redis"
-import { logger } from "../../winston.js";
+import { logger } from "../winston.js";
 
 export const redisClient = await createClient()
   .on("error", (err) => logger.error("Redis Client Error", err))
