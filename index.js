@@ -1,9 +1,9 @@
 import 'dotenv/config'
 import express from "express"
 import cookieParser from "cookie-parser"
-import { router as auth } from "./routes/auth.js"
-import { router as account } from "./routes/users.js"
-import "./db/mongo.js"
+import { router as auth } from "./src/routes/auth.js"
+import { router as account } from "./src/routes/users.js"
+import "./src/db/mongo.js"
 import cors from "cors"
 import { logger } from './winston.js'
 
@@ -18,7 +18,7 @@ app.use(cors({
 app.use('/auth', auth)
 app.use('/auth/accounts', account)
 
-app.listen(process.env.EXPRESS_PORT | 3200, () => {
+app.listen(process.env.EXPRESS_PORT || 3200, () => {
 
-    logger.info("server started on http://localhost:" + (process.env.EXPRESS_PORT | 3200))
+    logger.info("server started on http://localhost:" + (process.env.EXPRESS_PORT || 3200))
 })

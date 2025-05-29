@@ -2,7 +2,7 @@ import jwt from 'jsonwebtoken'
 import { User } from '../models/auth.js'
 import bcrypt from "bcrypt";
 import { redisClient } from '../db/redis.js'
-const saltRounds = process.env.BCRYPT_SALT_ROUND | 10;
+const saltRounds = process.env.BCRYPT_SALT_ROUND || 10;
 
 export const login = async (req, res) => {
     const { password, mail } = req.body

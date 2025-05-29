@@ -22,6 +22,13 @@ export const findUser = (req, res) => {
     }).catch(err => res.status(500).json(err.message))
 }
 
+export const updatePassword =(req,res)=>{
+    const {password, newPassword} = req.body
+    const { id } = req.params
+    User.findById(id).then(result=>{
+        
+    })
+}
 
 export const UpdateUser = (req, res) => {
 
