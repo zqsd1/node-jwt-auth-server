@@ -1,3 +1,4 @@
+import 'dotenv/config'
 import express from "express"
 import cookieParser from "cookie-parser"
 import { router as auth } from "./src/routes/auth.js"
@@ -6,14 +7,10 @@ import "./src/db/mongo.js"
 import cors from "cors"
 import { logger } from './src/winston.js'
 import { errors } from './src/middlewares/errors.js'
-
-if (process.env.NODE_ENV !== "production") import('dotenv/config')
+import morgan from 'morgan'
 
 const app = express()
-if (process.env.NODE_ENV!== "production") {
-    const morgan = await import('morgan')
-    app.use(morgan('combined'))
-}
+app.use(morgan('combined'))
 app.use(cookieParser())
 app.use(express.json())
 app.use(cors({
