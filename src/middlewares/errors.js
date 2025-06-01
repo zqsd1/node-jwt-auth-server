@@ -1,14 +1,14 @@
 import { logger } from "../winston.js";
 
 export const errors = (err, req, res, next) => {
-
+    console.log("err")
     // Log the error
     logger.error('Error occurred:', {
         error: err.message,
-        stack: err.stack,
+        // stack: err.stack,
         path: req.path,
         method: req.method,
-        userId: req.user?.id
+        // userId: req.user?.id
     });
 
     // If headers are already sent, delegate to Express's default error handler

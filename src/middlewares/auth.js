@@ -1,4 +1,5 @@
 import jwt from "jsonwebtoken"
+import { HttpError } from "../httpError.js"
 
 export const AdminCheck = (req, res, next) => {
     // const token = req.headers.authorization?.split(' ')[1];
@@ -19,10 +20,11 @@ export const AdminCheck = (req, res, next) => {
 
 
 export const authenticate = (req, res, next) => {
+    console.log('auth')
     const token = req.headers.authorization?.split(' ')[1];
-    if (!token) return res.sendStatus(401)
+    if (!token) return next(new HttpError(401, 'unauthorized')) //return res.sendStatus(401)
     jwt.verify(token, process.env.AUTH_TOKEN_KEY, (err, decoded) => {
-        if (err) return res.status(400).json(err.message)
+        if (err) return next(new HttpError(403, "forbidden"))//res.status(400).json(err.message)
         req.userinfo = decoded
         next()
     })

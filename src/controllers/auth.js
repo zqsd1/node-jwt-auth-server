@@ -2,11 +2,12 @@ import jwt from 'jsonwebtoken'
 import { User } from '../models/auth.js'
 import bcrypt from "bcrypt";
 import { redisClient } from '../db/redis.js'
-const saltRounds = process.env.BCRYPT_SALT_ROUND || 10;
+import { HttpError } from '../httpError.js';
+const saltRounds = 10
 
 export const login = async (req, res) => {
     const { password, mail } = req.body
-    if (!(password && mail)) return res.sendStatus(401) //missing something
+    if (!(password && mail)) throw (new HttpError(401, '')) //return res.sendStatus(401) //missing something
     const user = await User.findOne({ mail })
     if (!user) return res.sendStatus(404) //user not found
 
@@ -77,6 +78,7 @@ export const register = async (req, res) => {
     // if (user) return res.status(400).json("user exist")
     bcrypt.hash(password, saltRounds)
         .then(hash => {
+
             const newUser = new User({ mail, password: hash, role })
             return newUser.save()
         }).then(response => {
