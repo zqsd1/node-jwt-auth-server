@@ -1,5 +1,5 @@
 import express from "express"
-import { deleteUser, findUser, listUsers, UpdateUser } from "../controllers/users.js"
+import { deleteUser, findUser, listUsers, updatePassword, UpdateUser } from "../controllers/users.js"
 import { authenticate, AdminCheck } from "../middlewares/auth.js"
 import { unregister } from "../controllers/auth.js"
 export const router = express.Router()
@@ -25,7 +25,7 @@ router.get('/', listUsers)
 router.get('/:id', findUser)
 
 //update user
-router.put('/:id', UpdateUser)
+router.put('/:id', updatePassword)
 
 router.delete('/:id',deleteUser)
 
