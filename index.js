@@ -7,8 +7,10 @@ import "./src/db/mongo.js"
 import cors from "cors"
 import { logger } from './src/winston.js'
 import { errors } from './src/middlewares/errors.js'
+import morgan from 'morgan'
 
 const app = express()
+app.use(morgan('combined'))
 app.use(cookieParser())
 app.use(express.json())
 app.use(cors({
