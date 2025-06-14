@@ -8,7 +8,7 @@ export const errors = (err, req, res, next) => {
         // stack: err.stack,
         path: req.path,
         method: req.method,
-        // userId: req.user?.id
+        userId: req.userinfo?.sub
     });
 
     // If headers are already sent, delegate to Express's default error handler
