@@ -2,13 +2,34 @@ import { User } from "../models/auth.js"
 import bcrypt from "bcrypt";
 import { logger } from "../winston.js";
 import { HttpError } from "../httpError.js";
+import { redisClient } from "../db/redis.js";
 const saltRounds = 10;
 
-export const listUsers = (req, res) => {
-    const { role } = req.query
-    User.find()
+const ELEMENTS_PER_PAGE = 10
+
+const totalPages = async () => {
+    let usersCount = await redisClient.get("usersCount")
+    if (!usersCount) {
+        usersCount = await User.estimatedDocumentCount()
+        await redisClient.set("usersCount", usersCount, { EX: 5 * 60 })
+    }
+    return Math.ceil(usersCount / ELEMENTS_PER_PAGE)
+}
+
+export const listUsers = async (req, res) => {
+    const { role, page } = req.query
+    const roleFilter = ["admin", "user"].includes(role) ? { role: role } : {}
+    const pages = await totalPages()
+    User.find(roleFilter)
+        .skip((page - 1) * 1)
+        .limit(ELEMENTS_PER_PAGE)
         .then(response => {
-            res.json(response)
+
+            res.json({
+                data: response,
+                totalPages: pages,
+                currentPage: Number(page) || 1
+            })
         }).catch(err => res.status(500).json(err.message))
 }
 
