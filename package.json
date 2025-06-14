@@ -6,7 +6,8 @@
   "type": "module",
   "scripts": {
     "dev": "nodemon",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "lint": "npx eslint ."
   },
   "author": "zqsd",
   "license": "ISC",
@@ -22,7 +23,10 @@
     "winston": "^3.17.0"
   },
   "devDependencies": {
-    "morgan": "^1.10.0",
+    "@eslint/js": "^9.29.0",
+    "@eslint/json": "^0.12.0",
+    "eslint": "^9.29.0",
+    "globals": "^16.2.0",
     "nodemon": "^3.1.10"
   }
 }
