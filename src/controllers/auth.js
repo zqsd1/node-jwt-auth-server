@@ -12,10 +12,10 @@ const authTokenDuration = process.env.AUTH_TOKEN_DURATION || "15m"
 
 export const login = async (req, res, next) => {
     const { password, mail } = req.body
-    if (!(password && mail)) return next(new HttpError(401, '')) //return res.sendStatus(401) //missing something
+    if (!(password && mail)) return next(new HttpError(401, 'missing data')) //return res.sendStatus(401) //missing something
 
     const user = await User.findOne({ mail })
-    if (!user) return next(new HttpError('404', "")) //return res.sendStatus(404) //user not found
+    if (!user) return next(new HttpError(404, "user not found")) //return res.sendStatus(404) //user not found
 
     const result = await bcrypt.compare(password, user.password)
     if (!result) return next(new HttpError(403, ''))//return res.sendStatus(403)//password not match
@@ -80,8 +80,11 @@ export const register = async (req, res) => {
     // const user = await User.findOne({ mail }) //si unique est mis avant de creer la table y'a pas besoin
     // if (user) return res.status(400).json("user exist")
     const hash = await bcrypt.hash(password, saltRounds)
+
+    //TODO handle mongoose error E11000 duplicate key error collection: users.users
     const newUser = new User({ mail, password: hash, role })
     const result = await newUser.save()
+
     return res.json(result)
 }
 

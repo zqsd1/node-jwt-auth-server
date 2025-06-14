@@ -1,10 +1,11 @@
 import { User } from "../models/auth.js"
 import bcrypt from "bcrypt";
 import { logger } from "../winston.js";
+import { HttpError } from "../httpError.js";
 const saltRounds = 10;
 
 export const listUsers = (req, res) => {
-    console.log("list")
+    const { role } = req.query
     User.find()
         .then(response => {
             res.json(response)
@@ -25,15 +26,16 @@ export const findUser = (req, res) => {
     }).catch(err => res.status(500).json(err.message))
 }
 
-export const updatePassword = async (req, res) => {
+export const updatePassword = async (req, res, next) => {
     try {
         const { password, newPassword } = req.body
         const { id } = req.params
         const user = await User.findById(id)
-        if (!user) return res.status(404).json("no user found")
+        if (!user) return next(new HttpError(404, 'no user found')) //res.status(404).json("no user found")
+
         const pass = await bcrypt.compare(password, user.password)
-        logger.log('info', pass)
-        if (!pass) return res.sendStatus(403)
+        if (!pass) return next(new HttpError(403, "password not match"))// return res.sendStatus(403)
+
         const newPass = await bcrypt.hash(newPassword, saltRounds)
         const u = await User.updateOne({ _id: id }, { password: newPass })
         // const n = await user.save({ isNew: false })
