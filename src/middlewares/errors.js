@@ -5,7 +5,7 @@ export const errors = (err, req, res, next) => {
     // Log the error
     logger.error('Error occurred:', {
         error: err.message,
-        // stack: err.stack,
+        stack: err.stack,
         path: req.path,
         method: req.method,
         userId: req.userinfo?.sub

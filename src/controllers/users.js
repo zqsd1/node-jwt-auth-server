@@ -26,6 +26,7 @@ export const listUsers = async (req, res) => {
         .limit(ELEMENTS_PER_PAGE)
         .then(response => {
 
+            logger.info(`${req.userinfo.email} get list users page:${currentPage} roles:${JSON.stringify(roleFilter)}`)
             res.json({
                 data: response,
                 totalPages: pages,
