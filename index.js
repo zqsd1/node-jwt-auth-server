@@ -22,6 +22,16 @@ app.use('/auth/accounts', account)
 app.use(errors)
 
 const port = process.env.EXPRESS_PORT || 3200
-app.listen(port, () => {
+const server = app.listen(port, () => {
     logger.info(`server started on http://0.0.0.0:${port}`)
 })
+
+const gracefullShutdown = () => {
+    logger.info('closing server')
+    server.close(() => {
+        logger.info('Server closed.');
+    });
+}
+
+process.on('SIGTERM', gracefullShutdown)
+process.on("SIGINT", gracefullShutdown)
