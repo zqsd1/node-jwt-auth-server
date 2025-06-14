@@ -18,17 +18,18 @@ const totalPages = async () => {
 
 export const listUsers = async (req, res) => {
     const { role, page } = req.query
+    const currentPage = page > 0 ? page - 1 : 0
     const roleFilter = ["admin", "user"].includes(role) ? { role: role } : {}
     const pages = await totalPages()
     User.find(roleFilter)
-        .skip((page - 1) * 1)
+        .skip(currentPage * ELEMENTS_PER_PAGE)
         .limit(ELEMENTS_PER_PAGE)
         .then(response => {
 
             res.json({
                 data: response,
                 totalPages: pages,
-                currentPage: Number(page) || 1
+                currentPage: currentPage + 1
             })
         }).catch(err => res.status(500).json(err.message))
 }
