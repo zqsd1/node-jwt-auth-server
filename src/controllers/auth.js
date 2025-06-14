@@ -4,6 +4,7 @@ import bcrypt from "bcrypt";
 import { redisClient } from '../db/redis.js'
 import { HttpError } from '../httpError.js';
 import { logger } from '../winston.js';
+
 const saltRounds = 10
 const refreshTokenDuration = process.env.REFRESH_TOKEN_DURATION || '1d'
 const authTokenDuration = process.env.AUTH_TOKEN_DURATION || "15m"
@@ -11,12 +12,14 @@ const authTokenDuration = process.env.AUTH_TOKEN_DURATION || "15m"
 
 export const login = async (req, res, next) => {
     const { password, mail } = req.body
-    if (!(password && mail)) next(new HttpError(401, '')) //return res.sendStatus(401) //missing something
+    if (!(password && mail)) return next(new HttpError(401, '')) //return res.sendStatus(401) //missing something
+
     const user = await User.findOne({ mail })
-    if (!user) next(new HttpError('404', "")) //return res.sendStatus(404) //user not found
+    if (!user) return next(new HttpError('404', "")) //return res.sendStatus(404) //user not found
 
     const result = await bcrypt.compare(password, user.password)
-    if (!result) next(new HttpError(403, ''))//return res.sendStatus(403)//password not match
+    if (!result) return next(new HttpError(403, ''))//return res.sendStatus(403)//password not match
+
     const authToken = jwt.sign(
         { role: user.role, email: user.mail, sub: user._id },
         process.env.AUTH_TOKEN_KEY,
@@ -30,28 +33,26 @@ export const login = async (req, res, next) => {
 
     res.cookie('refreshToken', refreshToken, {
         httpOnly: true,
-        maxAge: 1000 * 60 * 60 * 24 //1 day
+        maxAge: 1000 * 60 * 60 * 24 ,//1 day
     })
 
     logger.info(`${mail} success login`)
-
     return res.json(authToken)
 }
 
 export const refresh = async (req, res, next) => {
     const { refreshToken } = req.cookies
-    if (!refreshToken) next(new HttpError(401, ''))//return res.sendStatus(401) //no token given
+    if (!refreshToken) return next(new HttpError(401, 'no refresh token'))//return res.sendStatus(401) //no token given
 
     const isTokenBanned = await redisClient.get(refreshToken)
-
-    if (isTokenBanned) throw (new HttpError(401, ''))//return res.sendStatus(401)
+    if (isTokenBanned) throw (new HttpError(401, 'refresh token banned'))//return res.sendStatus(401)
 
     jwt.verify(refreshToken, process.env.REFRESH_TOKEN_KEY, async (err, decode) => {
-        if (err) throw (new HttpError(401, '')) //return res.sendStatus(401)//token expired ?
+        if (err) throw (new HttpError(401, 'refresh token invalid')) //return res.sendStatus(401)//token expired ?
         const { sub } = decode
 
         const user = await User.findById(sub)
-        if (!user) next(new HttpError(404, 'user dont exist anymore'))// return res.status(404).json("user dont exist anymore")
+        if (!user) return next(new HttpError(404, 'user dont exist anymore'))// return res.status(404).json("user dont exist anymore")
         const authToken = jwt.sign(
             { role: user.role, sub: user._id, email: user.mail },
             process.env.AUTH_TOKEN_KEY,
@@ -65,6 +66,7 @@ export const refresh = async (req, res, next) => {
 export const logout = (req, res) => {
     const { refreshToken } = req.cookies
     if (!refreshToken) throw (new HttpError(401, ''))// return res.sendStatus(401)
+    
     redisClient.set(refreshToken, 1, { EX: 60 * 60 * 24 })
 
     logger.info(`${req.userinfo.email} logout`)
@@ -72,7 +74,7 @@ export const logout = (req, res) => {
 }
 
 export const register = async (req, res) => {
-    if (!req.body) return res.sendStatus(500)// no body found
+    // if (!req.body) return res.sendStatus(500)// no body found
     const { mail, password, role } = req.body
     if (!mail || !password) throw (new HttpError(400, 'missing info'))//return res.sendStatus(400)//missing data
     // const user = await User.findOne({ mail }) //si unique est mis avant de creer la table y'a pas besoin
@@ -81,7 +83,6 @@ export const register = async (req, res) => {
     const newUser = new User({ mail, password: hash, role })
     const result = await newUser.save()
     return res.json(result)
-
 }
 
 export const unregister = async (req, res) => {
