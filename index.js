@@ -21,7 +21,7 @@ app.use('/auth/accounts', account)
 
 app.use(errors)
 
-app.listen(process.env.EXPRESS_PORT || 3200, () => {
-
-    logger.info("server started on http://localhost:" + (process.env.EXPRESS_PORT || 3200))
+const port = process.env.EXPRESS_PORT || 3200
+app.listen(port, () => {
+    logger.info(`server started on http://0.0.0.0:${port}`)
 })
