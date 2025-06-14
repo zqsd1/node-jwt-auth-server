@@ -1,9 +1,5 @@
 import mongoose, { Schema } from "mongoose";
 
-// mongoose.connect(process.env.DATABASE_URL)
-//     .then(() => console.log('mongo connected'))
-//     .catch(err => console.error(err))
-
 const UserSchema = new Schema({
     mail: {
         type: String,
