@@ -16,7 +16,7 @@ const totalPages = async () => {
     return Math.ceil(usersCount / ELEMENTS_PER_PAGE)
 }
 
-export const listUsers = async (req, res) => {
+export const listUsers = async (req, res, next) => {
     const { role, page } = req.query
     const currentPage = page > 0 ? page - 1 : 0
     const roleFilter = ["admin", "user"].includes(role) ? { role: role } : {}
@@ -28,25 +28,27 @@ export const listUsers = async (req, res) => {
 
             logger.info(`${req.userinfo.email} get list users page:${currentPage} roles:${JSON.stringify(roleFilter)}`)
             res.json({
+                success: true,
+                message: "list users",
                 data: response,
                 totalPages: pages,
                 currentPage: currentPage + 1
             })
-        }).catch(err => res.status(500).json(err.message))
+        }).catch(err => next(err))
 }
 
-export const deleteUser = (req, res) => {
+export const deleteUser = (req, res, next) => {
     const { id } = req.params
     User.deleteOne({ _id: id })
-        .then(response => res.json(response))
-        .catch(err => res.status(500).json(err.message))
+        .then(data => res.json({ success: true, message: `user ${id} deleted`, data }))
+        .catch(err => next(err))
 }
 
-export const findUser = (req, res) => {
+export const findUser = (req, res, next) => {
     const { id } = req.params
-    User.findById(id).then(response => {
-        res.json(response)
-    }).catch(err => res.status(500).json(err.message))
+    User.findById(id).then(data => {
+        res.json({ success: true, message: `user ${id}`, data })
+    }).catch(err => next(err))
 }
 
 export const updatePassword = async (req, res, next) => {
@@ -60,12 +62,11 @@ export const updatePassword = async (req, res, next) => {
         if (!pass) return next(new HttpError(403, "password not match"))// return res.sendStatus(403)
 
         const newPass = await bcrypt.hash(newPassword, saltRounds)
-        const u = await User.updateOne({ _id: id }, { password: newPass })
+        const data = await User.updateOne({ _id: id }, { password: newPass })
         // const n = await user.save({ isNew: false })
-        res.json(u)
+        res.json({ success: true, message: `user ${id} password updated`, data })
     } catch (err) {
-        logger.error(err.message)
-        res.status(500).json(err.message)
+        next(err)
     }
 }
 

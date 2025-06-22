@@ -1,7 +1,6 @@
 import { logger } from "../winston.js";
 
 export const errors = (err, req, res, next) => {
-    console.log("err")
     // Log the error
     logger.error('Error occurred:', {
         error: err.message,

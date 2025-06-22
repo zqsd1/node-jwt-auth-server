@@ -20,7 +20,6 @@ export const AdminCheck = (req, res, next) => {
 
 
 export const authenticate = (req, res, next) => {
-    console.log('auth')
     const token = req.headers.authorization?.split(' ')[1];
     if (!token) return next(new HttpError(401, 'unauthorized')) //return res.sendStatus(401)
     jwt.verify(token, process.env.AUTH_TOKEN_KEY, (err, decoded) => {
