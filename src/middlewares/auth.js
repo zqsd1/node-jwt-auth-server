@@ -20,12 +20,17 @@ export const AdminCheck = (req, res, next) => {
 
 
 export const authenticate = (req, res, next) => {
-    const token = req.headers.authorization?.split(' ')[1];
-    if (!token) return next(new HttpError(401, 'unauthorized')) //return res.sendStatus(401)
-    jwt.verify(token, process.env.AUTH_TOKEN_KEY, (err, decoded) => {
-        if (err) return next(new HttpError(403, "forbidden"))//res.status(400).json(err.message)
-        req.userinfo = decoded
-        next()
-    })
+    try {
+        const token = req.headers.authorization?.split(' ')[1];
+        if (!token) throw new HttpError(401, 'unauthorized')
+        jwt.verify(token, process.env.AUTH_TOKEN_KEY, (err, decoded) => {
+            if (err) throw new HttpError(403, "forbidden")
+            req.userinfo = decoded
+            next()
+        })
+
+    } catch (error) {
+        next(error)
+    }
 
 }

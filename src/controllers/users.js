@@ -40,30 +40,36 @@ export const listUsers = async (req, res, next) => {
 export const deleteUser = (req, res, next) => {
     const { id } = req.params
     User.deleteOne({ _id: id })
-        .then(data => res.json({ success: true, message: `user ${id} deleted`, data }))
+        .then(data => {
+            logger.info(`user ${id} deleted`, { userId: req.userinfo?.sub, mail: req.userinfo?.email })
+            res.json({ success: true, message: `user ${id} deleted`, data })
+        })
         .catch(err => next(err))
 }
 
 export const findUser = (req, res, next) => {
     const { id } = req.params
-    User.findById(id).then(data => {
-        res.json({ success: true, message: `user ${id}`, data })
-    }).catch(err => next(err))
+    User.findById(id)
+        .then(data => {
+            res.json({ success: true, message: `user ${id}`, data })
+        }).catch(err => next(err))
 }
 
 export const updatePassword = async (req, res, next) => {
     try {
         const { password, newPassword } = req.body
         const { id } = req.params
-        const user = await User.findById(id)
-        if (!user) return next(new HttpError(404, 'no user found')) //res.status(404).json("no user found")
+        const user = await User.findById(id).select("+password")
+        if (!user) throw new HttpError(404, 'no user found') //res.status(404).json("no user found")
 
         const pass = await bcrypt.compare(password, user.password)
-        if (!pass) return next(new HttpError(403, "password not match"))// return res.sendStatus(403)
+        if (!pass) throw new HttpError(403, "password not match")// return res.sendStatus(403)
 
         const newPass = await bcrypt.hash(newPassword, saltRounds)
         const data = await User.updateOne({ _id: id }, { password: newPass })
         // const n = await user.save({ isNew: false })
+
+        logger.info(`user ${id} password updated`, { userId: req.userinfo?.sub, mail: req.userinfo?.email })
         res.json({ success: true, message: `user ${id} password updated`, data })
     } catch (err) {
         next(err)
