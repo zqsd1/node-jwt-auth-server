@@ -8,7 +8,7 @@ const UserSchema = new Schema({
         lowercase: true,
         match: /^[\w\-\.]+@([\w-]+\.)+[\w-]{2,}$/
     },
-    password: { type: String, required: true },
+    password: { type: String, required: true, select: false },
     role: { type: String, default: "user", enum: ["user", "admin"] }
 })
 
