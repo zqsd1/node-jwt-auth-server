@@ -9,12 +9,13 @@ import { logger } from './src/winston.js'
 import { errors } from './src/middlewares/errors.js'
 import helmet from 'helmet'
 
+const origin = process.env.ORIGIN.split(",") || []
 const app = express()
 app.use(cookieParser())
 app.use(helmet())
 app.use(express.json())
 app.use(cors({
-    origin: true,
+    origin:origin,
     credentials: true
 }))
 
