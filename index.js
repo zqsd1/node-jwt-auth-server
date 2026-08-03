@@ -7,9 +7,11 @@ import "./src/db/mongo.js"
 import cors from "cors"
 import { logger } from './src/winston.js'
 import { errors } from './src/middlewares/errors.js'
+import helmet from 'helmet'
 
 const app = express()
 app.use(cookieParser())
+app.use(helmet())
 app.use(express.json())
 app.use(cors({
     origin: true,
